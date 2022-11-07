@@ -1,14 +1,30 @@
-from email import message
-from flask import Flask, render_template, request
+from flask import Flask
+from flask import render_template
+from flask import request
 
-app = Flask(__name__)
+def toweb(f):
+    app = Flask(__name__)
 
-@app.route("/", methods=['post', 'get'])
-def hello_world():
-  answer = ''
-  if request.method == 'POST':
-    answer = ''
-    date = request.form.get('date')
+    @app.route("/", methods=['GET', 'POST'])
+    def myfunc():
+        about = f.__doc__
+        a = f.__annotations__
+        if 'return' in a:
+            a.pop('return') 
+
+        if request.form:
+            res = f(**request.form)
+        else:
+            res = None
+
+        return render_template('temp.html', about = 'Введите дату рождения', a = a, res = res)
+
+    return app
+
+# s = toweb(s)
+@toweb
+def s(date: str) -> str:
+    answer = ""
     if date[3] + date[4] == '01':
         if int(date[0] + date[1]) <= 19:
             answer = 'КОЗЕРОГ'
@@ -69,8 +85,6 @@ def hello_world():
             answer = 'СТРЕЛЕЦ'
         if int(date[0] + date[1]) > 21:
             answer = 'КОЗЕРОГ'
-    print(answer)
-  return render_template("temp.html", message = answer)
+    return answer
 
-if __name__ == "__main__":
-    app.run()
+s.run(host='0.0.0.0', port="5001")
